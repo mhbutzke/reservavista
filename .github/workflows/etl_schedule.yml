@@ -26,9 +26,10 @@ jobs:
         
     - name: Run ETL Script
       env:
-        VISTA_API_KEY: ${{ secrets.VISTA_API_KEY }}
         VISTA_API_URL: ${{ secrets.VISTA_API_URL }}
+        VISTA_API_KEY: ${{ secrets.VISTA_API_KEY }}
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-        SAVE_TO_CSV: "False" # No CSVs in GitHub Actions
-      run: python etl_prototype.py
+        SAVE_TO_CSV: "False"
+      run: |
+        python -m src.main
