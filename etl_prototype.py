@@ -685,7 +685,7 @@ def main():
         'DataInicial', 'DataFinal', 'ValorNegocio', 'PrevisaoFechamento', 
         'VeiculoCaptacao', 'CodigoMotivoPerda', 'MotivoPerda', 'ObservacaoPerda', 
         'CodigoPipe', 'EtapaAtual', 'NomeEtapa', 'CodigoCliente', 'NomeCliente', 
-        'FotoCliente', 'CodigoImovel', 'StatusAtividades'
+        'FotoCliente', 'CodigoImovel', 'StatusAtividades', 'CodigoCorretor', 'CodigoAgencia'
     ]
     
     # --- Extração de Negócios ---
@@ -724,37 +724,32 @@ def main():
                 n["PipeNome"] = pipe_nome
                 all_negocios.append(n) # Adiciona o negócio bruto para a extração de atividades
                 
-                # Mapeamento para o formato final
+                # Mapeamento para o formato final (Schema SQL)
                 processed_n = {
                     "Codigo": n.get("Codigo"),
-                    "NomePipe": n.get("NomePipe"),
-                    "UltimaAtualizacao": n.get("UltimaAtualizacao"),
-                    "NomeNegocio": n.get("NomeNegocio"),
+                    "Titulo": n.get("NomeNegocio"), # Mapeado: NomeNegocio -> Titulo
+                    "ValorVenda": n.get("ValorNegocio"), # Mapeado: ValorNegocio -> ValorVenda
+                    "ValorLocacao": None, # Não disponível diretamente na lista padrão, assumindo NULL
+                    "Fase": n.get("NomeEtapa"), # Mapeado: NomeEtapa -> Fase
+                    "DataCadastro": n.get("DataInicial"), # Mapeado: DataInicial -> DataCadastro
+                    "DataAtualizacao": n.get("UltimaAtualizacao"), # Mapeado: UltimaAtualizacao -> DataAtualizacao
+                    "DataFechamento": n.get("DataFinal"), # Mapeado: DataFinal -> DataFechamento
                     "Status": n.get("Status"),
-                    "DataInicial": n.get("DataInicial"),
-                    "DataFinal": n.get("DataFinal"),
-                    "ValorNegocio": n.get("ValorNegocio"),
-                    "PrevisaoFechamento": n.get("PrevisaoFechamento"),
-                    "VeiculoCaptacao": n.get("VeiculoCaptacao"),
-                    "CodigoMotivoPerda": n.get("CodigoMotivoPerda"),
-                    "MotivoPerda": n.get("MotivoPerda"),
-                    "ObservacaoPerda": n.get("ObservacaoPerda"),
-                    "CodigoPipe": n.get("CodigoPipe"),
-                    "EtapaAtual": n.get("EtapaAtual"),
-                    "NomeEtapa": n.get("NomeEtapa"),
                     "CodigoCliente": n.get("CodigoCliente"),
+                    "CodigoCorretor": n.get("CodigoCorretor"),
+                    "CodigoAgencia": n.get("CodigoAgencia"),
+                    "Origem": n.get("VeiculoCaptacao"), # Mapeado: VeiculoCaptacao -> Origem
+                    "Midia": None,
+                    "Observacao": None,
+                    "ObservacaoPerda": n.get("ObservacaoPerda"),
                     "NomeCliente": n.get("NomeCliente"),
-                    "NomeCorretor": "",
+                    "NomeCorretor": "", # Será preenchido via join no banco se necessário, ou precisa de extração extra
                     "NomeAgencia": "",
                     "MotivoPerda": n.get("MotivoPerda"),
-                    "DataPerda": "", # Pode ser inferido de DataFinal se Status for Perdido
-                    "DataGanho": "", # Pode ser inferido de DataFinal se Status for Ganho
+                    "DataPerda": n.get("DataFinal") if n.get("Status") == "Perdido" else None,
+                    "DataGanho": n.get("DataFinal") if n.get("Status") == "Ganho" else None,
                     "PipeID": n.get("CodigoPipe"),
-                    "PipeNome": n.get("NomePipe"),
-                    "CodigoImovel": n.get("CodigoImovel"),
-                    "StatusAtividades": json.dumps(n.get("StatusAtividades")) if n.get("StatusAtividades") else None,
-                    "TempoDaEtapaAtualDoNegocioDias": n.get("TempoDaEtapaAtualDoNegocioDias"),
-                    "FotoCliente": n.get("FotoCliente")
+                    "PipeNome": n.get("NomePipe")
                 }
                 processed_negocios.append(processed_n)
             
