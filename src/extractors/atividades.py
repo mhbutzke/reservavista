@@ -1,9 +1,9 @@
-import concurrent.futures
+import asyncio
 import json
-from src.utils.api_client import make_api_request
+from src.utils.async_api_client import make_async_api_request
 from src.config import VISTA_API_KEY
 
-def fetch_deal_activities(deal, fields_atividades):
+async def fetch_deal_activities(session, deal, fields_atividades):
     deal_id = deal.get("Codigo")
     if not deal_id:
         return []
@@ -18,8 +18,8 @@ def fetch_deal_activities(deal, fields_atividades):
             "codigo_negocio": deal_id
         }
         
-        # Usar make_api_request para buscar IDs
-        data = make_api_request("negocios/atividades", params=params)
+        # Usar make_async_api_request para buscar IDs
+        data = await make_async_api_request(session, "negocios/atividades", params=params)
         
         if not data:
             return []
@@ -29,7 +29,8 @@ def fetch_deal_activities(deal, fields_atividades):
         if not activity_ids:
             return []
             
-        # Passo 2: Buscar detalhes de cada atividade individualmente
+        # Passo 2: Buscar detalhes de cada atividade individualmente (em paralelo)
+        tasks = []
         for act_id in activity_ids:
             # Filtrar por ID específico para obter o registro completo
             params_detail = {
@@ -41,10 +42,11 @@ def fetch_deal_activities(deal, fields_atividades):
                 }),
                 "codigo_negocio": deal_id
             }
+            tasks.append(make_async_api_request(session, "negocios/atividades", params=params_detail))
             
-            # Usar make_api_request para buscar detalhes
-            detail_data = make_api_request("negocios/atividades", params=params_detail)
-            
+        details_results = await asyncio.gather(*tasks)
+        
+        for detail_data in details_results:
             if detail_data:
                 # O retorno é {"Campo": ["Valor"], ...}
                 # Precisamos "flatten" isso para um objeto simples
@@ -62,11 +64,11 @@ def fetch_deal_activities(deal, fields_atividades):
         print(f"Erro ao extrair atividades do negócio {deal_id}: {e}")
         return []
 
-def extract_activities(deals):
+async def extract_activities(session, deals):
     """
-    Extrai atividades de cada negócio usando paralelismo e estratégia de busca por ID.
+    Extrai atividades de cada negócio usando asyncio.
     """
-    print(f"Iniciando extração de atividades para {len(deals)} negócios (Paralelo - Estratégia ID)...")
+    print(f"Iniciando extração de atividades para {len(deals)} negócios (Async)...")
     all_activities = []
     
     fields_atividades = [
@@ -80,23 +82,19 @@ def extract_activities(deals):
         "Icone", "Duracao", "FotoCorretor", "Status"
     ]
     
-    with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
-        future_to_deal = {executor.submit(fetch_deal_activities, deal, fields_atividades): deal for deal in deals}
+    # Processar em lotes para não criar milhares de tasks de uma vez
+    batch_size = 50
+    for i in range(0, len(deals), batch_size):
+        batch = deals[i:i + batch_size]
+        tasks = [fetch_deal_activities(session, deal, fields_atividades) for deal in batch]
         
-        count = 0
-        total = len(deals)
+        results = await asyncio.gather(*tasks)
         
-        for future in concurrent.futures.as_completed(future_to_deal):
-            count += 1
-            if count % 50 == 0:
-                print(f"Processado {count}/{total} negócios...")
-            
-            try:
-                data = future.result()
-                if data:
-                    all_activities.extend(data)
-            except Exception as e:
-                print(f"Erro na thread: {e}")
+        for res in results:
+            if res:
+                all_activities.extend(res)
+                
+        print(f"Processado {min(i + batch_size, len(deals))}/{len(deals)} negócios...")
             
     print(f"Total de atividades extraídas: {len(all_activities)}")
     

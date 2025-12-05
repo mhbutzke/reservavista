@@ -1,8 +1,8 @@
-from src.utils.api_client import get_vista_data
+from src.utils.async_api_client import get_vista_data_async
 from src.utils.supabase_client import get_last_run_from_supabase, update_last_run_in_supabase
 
-def extract_clientes():
-    print("\n--- Extraindo Clientes ---")
+async def extract_clientes(session):
+    print("\n--- Extraindo Clientes (Async) ---")
     fields_clientes = [
         "Codigo", "Nome", "CPFCNPJ", "RG", "DataNascimento", "Sexo", "EstadoCivil", "Profissao", "Nacionalidade",
         "EmailResidencial", "FonePrincipal", "Celular", "FoneComercial", "EmailComercial",
@@ -10,12 +10,7 @@ def extract_clientes():
         "Status", "DataCadastro", "Observacoes"
     ]
     
-    # Incremental sync disabled due to API issues with date filtering
-    # last_run_time = get_last_run_from_supabase("clientes")
-    # if last_run_time:
-    #     print(f"Sincronização incremental: buscando clientes atualizados após {last_run_time}")
-    
-    clientes = get_vista_data("clientes/listar", fields_clientes)
+    clientes = await get_vista_data_async(session, "clientes/listar", fields_clientes)
     
     if clientes:
         update_last_run_in_supabase("clientes")

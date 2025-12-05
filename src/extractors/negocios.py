@@ -1,11 +1,11 @@
-from src.utils.api_client import get_vista_data
+from src.utils.async_api_client import get_vista_data_async
 from src.utils.supabase_client import get_last_run_from_supabase, update_last_run_in_supabase, save_to_supabase
 from src.config import SAVE_TO_CSV
 import pandas as pd
 import os
 
-def extract_negocios():
-    print("\n--- Extraindo Negócios (Deals) ---")
+async def extract_negocios(session):
+    print("\n--- Extraindo Negócios (Deals) - Async ---")
     
     fields_negocios = [
         'Codigo', 'NomePipe', 'UltimaAtualizacao', 'NomeNegocio', 'Status', 
@@ -15,15 +15,13 @@ def extract_negocios():
         'FotoCliente', 'CodigoImovel', 'StatusAtividades'
     ]
     
-    # last_run_time = get_last_run_from_supabase("negocios")
-    
     all_negocios = []
     processed_negocios = []
     
     # 1. Listar Pipes (Funis)
     fields_pipes = ["Codigo", "Nome"]
     empresa_id = "32622" 
-    pipes = get_vista_data("pipes/listar", fields_pipes, url_params={"empresa": empresa_id})
+    pipes = await get_vista_data_async(session, "pipes/listar", fields_pipes, url_params={"empresa": empresa_id})
     
     if pipes:
         print(f"Pipes encontrados: {len(pipes)}")
@@ -36,7 +34,7 @@ def extract_negocios():
             
             # Endpoint negocios/listar também apresenta problemas com filtro de range (500 Error).
             # Vamos extrair tudo sempre para garantir.
-            negocios_pipe = get_vista_data("negocios/listar", fields_negocios, url_params=url_params)
+            negocios_pipe = await get_vista_data_async(session, "negocios/listar", fields_negocios, url_params=url_params)
             
             # Processar e mapear os negócios
             for n in negocios_pipe:

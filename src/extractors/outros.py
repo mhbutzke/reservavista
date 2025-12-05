@@ -1,9 +1,9 @@
-from src.utils.api_client import get_vista_data
+from src.utils.async_api_client import get_vista_data_async
 from src.utils.supabase_client import get_last_run_from_supabase, update_last_run_in_supabase, save_to_supabase
 from src.config import SAVE_TO_CSV
 
-def extract_usuarios():
-    print("\n--- Extraindo Usuários ---")
+async def extract_usuarios(session):
+    print("\n--- Extraindo Usuários (Async) ---")
     fields = [
         "Datacadastro", "RGInscricao", "RGEmissor", "CPFCGC", "Nascimento", "Nacionalidade", 
         "CNH", "CNHExpedicao", "CNHVencimento", "Celular", "Endereco", "Bairro", "Cidade", 
@@ -16,7 +16,7 @@ def extract_usuarios():
         "Atuaçãoemlocação", "DataUltimoLogin", "CodigoAgencia", "Email", "Foto"
     ]
     
-    usuarios = get_vista_data("usuarios/listar", fields)
+    usuarios = await get_vista_data_async(session, "usuarios/listar", fields)
     print(f"Total de usuários extraídos: {len(usuarios)}")
     
     if usuarios:
@@ -24,17 +24,15 @@ def extract_usuarios():
         
     return usuarios
 
-def extract_agencias():
-    print("\n--- Extraindo Agências ---")
+async def extract_agencias(session):
+    print("\n--- Extraindo Agências (Async) ---")
     fields = [
         "Codigo", "Empresa", "Responsavel", "Endereco", "Bairro", "Cidade", "Cep", "Uf", 
         "Pais", "Fone", "E-mail", "Numero", "Complemento", "CodigoEmpresa", "Nome", "Ddd", 
         "Cnpj", "Cpf", "RazaoSocial", "Fone2", "Celular", "Creci", "Site"
     ]
     
-    # last_run_time = get_last_run_from_supabase("agencias")
-    
-    agencias = get_vista_data("agencias/listar", fields)
+    agencias = await get_vista_data_async(session, "agencias/listar", fields)
     print(f"Total de agências extraídas: {len(agencias)}")
     
     if agencias:
@@ -43,17 +41,15 @@ def extract_agencias():
         
     return agencias
 
-def extract_proprietarios():
-    print("\n--- Extraindo Proprietários ---")
+async def extract_proprietarios(session):
+    print("\n--- Extraindo Proprietários (Async) ---")
     fields = [
         'Codigo', 'FotoCliente', 'Foto', 'CodigoAgencia', 'Corretor', 'Agencia', 'Nome', 
         'CPFCNPJ', 'CreditoSituacao', 'CreditoMensagem', 'CODIGO_CREDPAGO', 'PossuiAnexo', 
         'AnexoCodigoFinalidade'
     ]
     
-    # last_run_time = get_last_run_from_supabase("proprietarios")
-    
-    proprietarios = get_vista_data("proprietarios/listar", fields)
+    proprietarios = await get_vista_data_async(session, "proprietarios/listar", fields)
     print(f"Total de proprietários extraídos: {len(proprietarios)}")
     
     if proprietarios:
@@ -62,13 +58,11 @@ def extract_proprietarios():
         
     return proprietarios
 
-def extract_corretores():
-    print("\n--- Extraindo Corretores ---")
+async def extract_corretores(session):
+    print("\n--- Extraindo Corretores (Async) ---")
     fields = ["Codigo", "Nome"] 
     
-    # last_run_time = get_last_run_from_supabase("corretores")
-    
-    corretores = get_vista_data("corretores/listar", fields)
+    corretores = await get_vista_data_async(session, "corretores/listar", fields)
     print(f"Total de corretores extraídos: {len(corretores)}")
     
     if corretores:
@@ -77,13 +71,13 @@ def extract_corretores():
         
     return corretores
 
-def extract_pipes():
-    print("\n--- Extraindo Pipes ---")
+async def extract_pipes(session):
+    print("\n--- Extraindo Pipes (Async) ---")
     empresa_id = "32622"
     
     fields = ["Codigo", "Nome", "Empresa"]
     
-    pipes = get_vista_data("pipes/listar", fields, url_params={"empresa": empresa_id})
+    pipes = await get_vista_data_async(session, "pipes/listar", fields, url_params={"empresa": empresa_id})
     print(f"Total de pipes extraídos: {len(pipes)}")
     
     if pipes:

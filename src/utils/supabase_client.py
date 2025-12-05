@@ -74,10 +74,12 @@ def save_to_supabase(data, table_name, unique_key="Codigo"):
         for i in range(0, total_records, batch_size):
             batch = data[i:i + batch_size]
             
-            # Sanitização: Converter strings vazias "" para None (NULL)
+            # Sanitização: Converter strings vazias "" e datas inválidas para None (NULL)
             for item in batch:
                 for key, value in item.items():
                     if value == "":
+                        item[key] = None
+                    elif isinstance(value, str) and (value.startswith("0000-00-00") or value == "0000-00-00 00:00:00"):
                         item[key] = None
             
             try:

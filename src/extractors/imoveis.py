@@ -1,11 +1,11 @@
-from src.utils.api_client import get_vista_data
+from src.utils.async_api_client import get_vista_data_async
 from src.utils.supabase_client import update_last_run_in_supabase, save_to_supabase
 from src.config import SAVE_TO_CSV
 import pandas as pd
 import os
 
-def extract_imoveis():
-    print("\n--- Extraindo Imóveis ---")
+async def extract_imoveis(session):
+    print("\n--- Extraindo Imóveis (Async) ---")
     fields_imoveis = [
         "Codigo", "Categoria", "Bairro", "Cidade", "ValorVenda", "ValorLocacao", 
         "AreaTotal", "AreaPrivativa", "Dormitorios", "Suites", "Vagas", "BanheiroSocial",
@@ -14,11 +14,7 @@ def extract_imoveis():
         "DescricaoWeb", "TituloSite"
     ]
     
-    # Endpoint imoveis/listar não suporta filtro de range (>=), apenas igualdade.
-    # Portanto, não é possível fazer sync incremental eficiente via API.
-    # Vamos extrair tudo sempre (são ~1200 registros, aceitável).
-    
-    imoveis = get_vista_data("imoveis/listar", fields_imoveis)
+    imoveis = await get_vista_data_async(session, "imoveis/listar", fields_imoveis)
     
     if imoveis:
         update_last_run_in_supabase("imoveis")
