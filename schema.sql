@@ -221,3 +221,10 @@ CREATE TABLE IF NOT EXISTS atividades (
     "FotoCorretor" TEXT,
     "Status" TEXT
 );
+
+-- Tabela de Controle de Sincronização (essencial para o incremental)
+CREATE TABLE IF NOT EXISTS sync_state (
+    "entity" TEXT PRIMARY KEY,
+    "last_run" TIMESTAMP,
+    "updated_at" TIMESTAMP
+);
