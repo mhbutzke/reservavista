@@ -350,8 +350,11 @@ def save_to_supabase(data, table_name, unique_key="Codigo"):
             
             try:
                 # Executar UPSERT
-                # on_conflict especifica a coluna de unicidade
-                response = supabase.table(table_name).upsert(batch, on_conflict=unique_key).execute()
+                if unique_key:
+                    response = supabase.table(table_name).upsert(batch, on_conflict=unique_key).execute()
+                else:
+                    # Se unique_key for None, usa a PK da tabela (Composite Key suportada nativamente)
+                    response = supabase.table(table_name).upsert(batch).execute()
 
                 # Nota: .execute() retorna um objeto response. Se der erro, lança exceção (postgrest-py).
                 
@@ -790,7 +793,8 @@ def main():
 
         
         # Salvar Atividades no Supabase
-        save_to_supabase(atividades, "atividades", unique_key="CodigoNegocio,CodigoAtividade")
+        # unique_key=None para usar a PK composta definida no banco (CodigoNegocio, CodigoAtividade)
+        save_to_supabase(atividades, "atividades", unique_key=None)
     else:
         print("Nenhum negócio novo/atualizado encontrado, pulando extração de atividades.")
         
