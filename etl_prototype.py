@@ -400,7 +400,7 @@ def extract_clientes():
     if last_run_time:
         print(f"Sincronização incremental: buscando clientes atualizados após {last_run_time}")
     
-    clientes = get_vista_data("clientes/listar", fields_clientes, primary_date_field="DataAtualizacao", last_run_time=last_run_time)
+    clientes = get_vista_data("clientes/listar", fields_clientes)
     
     if clientes:
         update_last_run_in_supabase("clientes")
@@ -677,6 +677,7 @@ def main():
 
 
     # Campos para extração de Negócios (Deals) - CORRIGIDO
+    fields_negocios = [
         'Codigo', 'NomePipe', 'UltimaAtualizacao', 'NomeNegocio', 'Status', 
         'DataInicial', 'DataFinal', 'ValorNegocio', 'PrevisaoFechamento', 
         'VeiculoCaptacao', 'CodigoMotivoPerda', 'MotivoPerda', 'ObservacaoPerda', 
