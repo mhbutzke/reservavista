@@ -5,12 +5,6 @@ CREATE TABLE IF NOT EXISTS pipes (
     "Empresa" TEXT
 );
 
--- Tabela: Corretores
-CREATE TABLE IF NOT EXISTS corretores (
-    "Codigo" TEXT PRIMARY KEY,
-    "Nome" TEXT
-);
-
 -- Tabela: Agencias
 CREATE TABLE IF NOT EXISTS agencias (
     "Codigo" TEXT PRIMARY KEY,
@@ -36,6 +30,12 @@ CREATE TABLE IF NOT EXISTS agencias (
     "Celular" TEXT,
     "Creci" TEXT,
     "Site" TEXT
+);
+
+-- Tabela: Corretores
+CREATE TABLE IF NOT EXISTS corretores (
+    "Codigo" TEXT PRIMARY KEY,
+    "Nome" TEXT
 );
 
 -- Tabela: Usuarios
@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
     "Atuaçãoemvenda" TEXT,
     "Atuaçãoemlocação" TEXT,
     "DataUltimoLogin" TEXT,
-    "CodigoAgencia" TEXT,
+    "CodigoAgencia" TEXT REFERENCES agencias("Codigo"), -- FK
     "Foto" TEXT
 );
 
@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS proprietarios (
     "Nome" TEXT,
     "FotoCliente" TEXT,
     "Foto" TEXT,
-    "CodigoAgencia" TEXT,
+    "CodigoAgencia" TEXT REFERENCES agencias("Codigo"), -- FK
     "Corretor" TEXT,
     "Agencia" TEXT,
     "CPFCNPJ" TEXT,
@@ -142,6 +142,34 @@ CREATE TABLE IF NOT EXISTS clientes (
     "Observacoes" TEXT
 );
 
+-- Tabela: Imóveis (NOVA)
+CREATE TABLE IF NOT EXISTS imoveis (
+    "Codigo" TEXT PRIMARY KEY,
+    "Categoria" TEXT,
+    "Bairro" TEXT,
+    "Cidade" TEXT,
+    "ValorVenda" NUMERIC,
+    "ValorLocacao" NUMERIC,
+    "AreaTotal" NUMERIC,
+    "AreaPrivativa" NUMERIC,
+    "Dormitorios" INTEGER,
+    "Suites" INTEGER,
+    "Vagas" INTEGER,
+    "BanheiroSocial" TEXT,
+    "Endereco" TEXT,
+    "Numero" TEXT,
+    "Complemento" TEXT,
+    "CEP" TEXT,
+    "UF" TEXT,
+    "DataCadastro" TIMESTAMP,
+    "DataAtualizacao" TIMESTAMP,
+    "Status" TEXT,
+    "Situacao" TEXT,
+    "DescricaoWeb" TEXT,
+    "TituloSite" TEXT,
+    "CodigoAgencia" TEXT REFERENCES agencias("Codigo") -- FK Opcional
+);
+
 -- Tabela: Negocios
 CREATE TABLE IF NOT EXISTS negocios (
     "Codigo" TEXT PRIMARY KEY,
@@ -153,9 +181,9 @@ CREATE TABLE IF NOT EXISTS negocios (
     "DataAtualizacao" TIMESTAMP,
     "DataFechamento" TIMESTAMP,
     "Status" TEXT,
-    "CodigoCliente" TEXT,
-    "CodigoCorretor" TEXT,
-    "CodigoAgencia" TEXT,
+    "CodigoCliente" TEXT REFERENCES clientes("Codigo"), -- FK
+    "CodigoCorretor" TEXT REFERENCES corretores("Codigo"), -- FK
+    "CodigoAgencia" TEXT REFERENCES agencias("Codigo"), -- FK
     "Origem" TEXT,
     "Midia" TEXT,
     "Observacao" TEXT,
@@ -166,15 +194,17 @@ CREATE TABLE IF NOT EXISTS negocios (
     "MotivoPerda" TEXT,
     "DataPerda" TIMESTAMP,
     "DataGanho" TIMESTAMP,
-    "PipeID" TEXT,
-    "PipeNome" TEXT
+    "PipeID" TEXT REFERENCES pipes("Codigo"), -- FK
+    "PipeNome" TEXT,
+    "CodigoImovel" TEXT REFERENCES imoveis("Codigo"), -- FK
+    "StatusAtividades" TEXT,
+    "FotoCliente" TEXT
 );
-
 
 -- Tabela: Atividades
 CREATE TABLE IF NOT EXISTS atividades (
     "CodigoAtividade" TEXT,
-    "CodigoNegocio" TEXT,
+    "CodigoNegocio" TEXT REFERENCES negocios("Codigo"), -- FK
     PRIMARY KEY ("CodigoNegocio", "CodigoAtividade"),
     "CodigoImovel" TEXT,
     "ValorProposta" NUMERIC,
@@ -196,8 +226,8 @@ CREATE TABLE IF NOT EXISTS atividades (
     "AtividadeCreatedAt" TIMESTAMP,
     "AtividadeUpdatedAt" TIMESTAMP,
     "Data" TIMESTAMP,
-    "CodigoCliente" TEXT,
-    "CodigoCorretor" TEXT,
+    "CodigoCliente" TEXT REFERENCES clientes("Codigo"), -- FK
+    "CodigoCorretor" TEXT REFERENCES corretores("Codigo"), -- FK
     "NumeroAgenda" TEXT,
     "DataHora" TIMESTAMP,
     "DataAtualizacao" TIMESTAMP,
@@ -223,9 +253,26 @@ CREATE TABLE IF NOT EXISTS atividades (
     "Status" TEXT
 );
 
--- Tabela de Controle de Sincronização (essencial para o incremental)
+-- Tabela de Controle de Sincronização
 CREATE TABLE IF NOT EXISTS sync_state (
     "entity" TEXT PRIMARY KEY,
     "last_run" TIMESTAMP,
     "updated_at" TIMESTAMP
 );
+
+-- Índices para Performance
+CREATE INDEX IF NOT EXISTS idx_negocios_data_atualizacao ON negocios("DataAtualizacao");
+CREATE INDEX IF NOT EXISTS idx_negocios_cliente ON negocios("CodigoCliente");
+CREATE INDEX IF NOT EXISTS idx_negocios_pipe ON negocios("PipeID");
+CREATE INDEX IF NOT EXISTS idx_negocios_status ON negocios("Status");
+
+CREATE INDEX IF NOT EXISTS idx_atividades_negocio ON atividades("CodigoNegocio");
+CREATE INDEX IF NOT EXISTS idx_atividades_data ON atividades("Data");
+CREATE INDEX IF NOT EXISTS idx_atividades_tipo ON atividades("TipoAtividade");
+
+CREATE INDEX IF NOT EXISTS idx_clientes_email ON clientes("EmailResidencial");
+CREATE INDEX IF NOT EXISTS idx_clientes_cpf ON clientes("CPFCNPJ");
+
+CREATE INDEX IF NOT EXISTS idx_imoveis_bairro ON imoveis("Bairro");
+CREATE INDEX IF NOT EXISTS idx_imoveis_cidade ON imoveis("Cidade");
+CREATE INDEX IF NOT EXISTS idx_imoveis_status ON imoveis("Status");
