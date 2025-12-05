@@ -569,7 +569,7 @@ def extract_agencias(should_save=True):
     
     last_run_time = get_last_run_from_supabase("agencias")
     
-    agencias = get_vista_data("agencias/listar", fields, primary_date_field="DataAtualizacao", last_run_time=last_run_time)
+    agencias = get_vista_data("agencias/listar", fields)
     print(f"Total de agências extraídas: {len(agencias)}")
     
     if should_save and agencias:
@@ -591,7 +591,7 @@ def extract_proprietarios(should_save=True):
     
     last_run_time = get_last_run_from_supabase("proprietarios")
     
-    proprietarios = get_vista_data("proprietarios/listar", fields, primary_date_field="DataAtualizacao", last_run_time=last_run_time)
+    proprietarios = get_vista_data("proprietarios/listar", fields)
     print(f"Total de proprietários extraídos: {len(proprietarios)}")
     
     if should_save and proprietarios:
@@ -650,7 +650,7 @@ def main():
 
 
 
-    # imoveis = get_vista_data("imoveis/listar", fields_imoveis)
+    # 1. Extrair Imóveis (Incremental)
     print("--- Extraindo Imóveis ---")
     imoveis = extract_imoveis()
     
@@ -660,7 +660,7 @@ def main():
     if imoveis:
         save_to_supabase(imoveis, "imoveis", unique_key="Codigo")
 
-    # 1. Extrair Clientes
+    # 2. Extrair Clientes (Incremental)
     print("--- Extraindo Clientes ---")
     clientes = extract_clientes()
     
@@ -677,12 +677,11 @@ def main():
 
 
     # Campos para extração de Negócios (Deals) - CORRIGIDO
-    fields_negocios = [
         'Codigo', 'NomePipe', 'UltimaAtualizacao', 'NomeNegocio', 'Status', 
         'DataInicial', 'DataFinal', 'ValorNegocio', 'PrevisaoFechamento', 
         'VeiculoCaptacao', 'CodigoMotivoPerda', 'MotivoPerda', 'ObservacaoPerda', 
         'CodigoPipe', 'EtapaAtual', 'NomeEtapa', 'CodigoCliente', 'NomeCliente', 
-        'FotoCliente', 'CodigoImovel', 'StatusAtividades', 'CodigoCorretor', 'CodigoAgencia'
+        'FotoCliente', 'CodigoImovel', 'StatusAtividades'
     ]
     
     # --- Extração de Negócios ---
@@ -733,8 +732,8 @@ def main():
                     "DataFechamento": n.get("DataFinal"), # Mapeado: DataFinal -> DataFechamento
                     "Status": n.get("Status"),
                     "CodigoCliente": n.get("CodigoCliente"),
-                    "CodigoCorretor": n.get("CodigoCorretor"),
-                    "CodigoAgencia": n.get("CodigoAgencia"),
+                    "CodigoCorretor": None, # Campo inválido na API negocios/listar
+                    "CodigoAgencia": None, # Campo inválido na API negocios/listar
                     "Origem": n.get("VeiculoCaptacao"), # Mapeado: VeiculoCaptacao -> Origem
                     "Midia": None,
                     "Observacao": None,
@@ -780,13 +779,6 @@ def main():
     # Se houver negócios novos/atualizados, buscar suas atividades
     if all_negocios:
         print("\n--- Extraindo Atividades (Incremental via Negócios Atualizados) ---")
-        # A função extract_activities já itera sobre a lista de negócios fornecida
-        # Se all_negocios contém apenas os atualizados, extract_activities buscará apenas atividades desses
-        # Precisamos passar a lista de negócios extraídos para buscar atividades relacionadas
-        # Como 'all_negocios' contém os dados brutos, podemos usar.
-        # Mas 'extract_activities' espera uma lista de IDs ou objetos?
-        # Vamos verificar a implementação de extract_activities.
-        # Ela itera sobre 'negocios' e pega 'Codigo'.
         
         # Correção do bug: remove 'should_save' argument
         atividades = extract_activities(all_negocios)
