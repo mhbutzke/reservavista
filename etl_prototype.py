@@ -528,13 +528,7 @@ def extract_activities(deals):
             except Exception as e:
                 print(f"Erro na thread: {e}")
             
-    print(f"Total de atividades extraídas (antes da deduplicação): {len(all_activities)}")
-    
-    # Deduplicar por CodigoAtividade
-    unique_activities = {act['CodigoAtividade']: act for act in all_activities}.values()
-    all_activities = list(unique_activities)
-    
-    print(f"Total de atividades extraídas (após deduplicação): {len(all_activities)}")
+    print(f"Total de atividades extraídas: {len(all_activities)}")
     
     # if should_save:
     #     save_to_csv(all_activities, "atividades.csv")
@@ -796,7 +790,7 @@ def main():
 
         
         # Salvar Atividades no Supabase
-        save_to_supabase(atividades, "atividades", unique_key="CodigoAtividade")
+        save_to_supabase(atividades, "atividades", unique_key="CodigoNegocio,CodigoAtividade")
     else:
         print("Nenhum negócio novo/atualizado encontrado, pulando extração de atividades.")
         

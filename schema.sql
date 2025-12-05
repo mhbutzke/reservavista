@@ -173,8 +173,9 @@ CREATE TABLE IF NOT EXISTS negocios (
 
 -- Tabela: Atividades
 CREATE TABLE IF NOT EXISTS atividades (
-    "CodigoAtividade" TEXT PRIMARY KEY,
+    "CodigoAtividade" TEXT,
     "CodigoNegocio" TEXT,
+    PRIMARY KEY ("CodigoNegocio", "CodigoAtividade"),
     "CodigoImovel" TEXT,
     "ValorProposta" NUMERIC,
     "EstadoProposta" TEXT,
