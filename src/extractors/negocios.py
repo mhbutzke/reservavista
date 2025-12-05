@@ -1,8 +1,51 @@
-from src.utils.async_api_client import get_vista_data_async
+from src.utils.async_api_client import get_vista_data_async, make_async_api_request
 from src.utils.supabase_client import get_last_run_from_supabase, update_last_run_in_supabase, save_to_supabase
-from src.config import SAVE_TO_CSV
+from src.config import SAVE_TO_CSV, VISTA_API_KEY
 import pandas as pd
 import os
+import asyncio
+import json
+
+async def fetch_deal_details(session, deal_id):
+    """
+    Busca detalhes de um negócio específico para obter dados do corretor.
+    """
+    try:
+        params = {
+            "key": VISTA_API_KEY,
+            "codigo_negocio": deal_id
+        }
+        data = await make_async_api_request(session, "negocios/detalhes", params=params)
+        return data
+    except Exception as e:
+        print(f"Erro ao buscar detalhes do negócio {deal_id}: {e}")
+        return None
+
+async def enrich_deals_with_details(session, deals):
+    """
+    Enriquece a lista de negócios com detalhes (corretor) em paralelo.
+    """
+    print(f"Enriquecendo {len(deals)} negócios com detalhes...")
+    enriched_deals = []
+    
+    # Processar em lotes
+    batch_size = 50
+    for i in range(0, len(deals), batch_size):
+        batch = deals[i:i + batch_size]
+        tasks = [fetch_deal_details(session, d.get("Codigo")) for d in batch]
+        
+        results = await asyncio.gather(*tasks)
+        
+        for original_deal, details in zip(batch, results):
+            if details:
+                # Mesclar detalhes no dicionário original
+                # Prioridade para o original, mas adicionamos o que falta (CorretoresNegocio)
+                original_deal.update(details)
+            enriched_deals.append(original_deal)
+            
+        print(f"Enriquecido {min(i + batch_size, len(deals))}/{len(deals)} negócios...")
+        
+    return enriched_deals
 
 async def extract_negocios(session):
     print("\n--- Extraindo Negócios (Deals) - Async ---")
@@ -36,6 +79,10 @@ async def extract_negocios(session):
             # Vamos extrair tudo sempre para garantir.
             negocios_pipe = await get_vista_data_async(session, "negocios/listar", fields_negocios, url_params=url_params)
             
+            if negocios_pipe:
+                # Enriquecer com detalhes (Corretor)
+                negocios_pipe = await enrich_deals_with_details(session, negocios_pipe)
+
             # Processar e mapear os negócios
             for n in negocios_pipe:
                 # Adicionar info do pipe (mantido para compatibilidade com all_negocios)
@@ -43,6 +90,16 @@ async def extract_negocios(session):
                 n["PipeNome"] = pipe_nome
                 all_negocios.append(n) # Adiciona o negócio bruto para a extração de atividades
                 
+                # Extrair dados do corretor (pode haver múltiplos, pegamos o primeiro por enquanto)
+                codigo_corretor = None
+                nome_corretor = ""
+                
+                corretores = n.get("CorretoresNegocio")
+                if corretores and isinstance(corretores, list) and len(corretores) > 0:
+                    first_broker = corretores[0]
+                    codigo_corretor = first_broker.get("CorretorNegocio")
+                    nome_corretor = first_broker.get("NomeCorretor")
+
                 # Mapeamento para o formato final (Schema SQL)
                 processed_n = {
                     "Codigo": n.get("Codigo"),
@@ -55,14 +112,14 @@ async def extract_negocios(session):
                     "DataFechamento": n.get("DataFinal"),
                     "Status": n.get("Status"),
                     "CodigoCliente": n.get("CodigoCliente"),
-                    "CodigoCorretor": None,
+                    "CodigoCorretor": codigo_corretor,
                     "CodigoAgencia": None,
                     "Origem": n.get("VeiculoCaptacao"),
                     "Midia": None,
                     "Observacao": None,
                     "ObservacaoPerda": n.get("ObservacaoPerda"),
                     "NomeCliente": n.get("NomeCliente"),
-                    "NomeCorretor": "",
+                    "NomeCorretor": nome_corretor,
                     "NomeAgencia": "",
                     "MotivoPerda": n.get("MotivoPerda"),
                     "DataPerda": n.get("DataFinal") if n.get("Status") == "Perdido" else None,
