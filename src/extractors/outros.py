@@ -59,17 +59,34 @@ async def extract_proprietarios(session):
     return proprietarios
 
 async def extract_corretores(session):
-    print("\n--- Extraindo Corretores (Async) ---")
-    fields = ["Codigo", "Nome"] 
+    print("\n--- Extraindo Corretores (via Usuários) (Async) ---")
+    # Buscamos da tabela de usuários pois lá tem a informação da Empresa (Equipe)
+    fields = ["Codigo", "Nome", "Corretor", "Gerente", "Empresa"]
+    filters = {"Corretor": "Sim"}
     
-    corretores = await get_vista_data_async(session, "corretores/listar", fields)
-    print(f"Total de corretores extraídos: {len(corretores)}")
+    usuarios_corretores = await get_vista_data_async(session, "usuarios/listar", fields, filters=filters)
+    print(f"Total de corretores encontrados em usuários: {len(usuarios_corretores)}")
     
-    if corretores:
-        save_to_supabase(corretores, "corretores", unique_key="Codigo")
+    corretores_processed = []
+    for u in usuarios_corretores:
+        # Lógica de Equipe: Se Corretor=Sim (já filtrado), Empresa define a equipe.
+        # O usuário mencionou "se Gerente = Nao", mas vamos trazer todos que são corretores,
+        # pois gerentes também podem atuar como corretores ou ter equipe definida.
+        # A coluna Empresa já traz "RESERVA IMOB POA" ou "RESERVA IMOB BC".
+        
+        equipe = u.get("Empresa")
+        
+        corretores_processed.append({
+            "Codigo": u.get("Codigo"),
+            "Nome": u.get("Nome"),
+            "Equipe": equipe
+        })
+    
+    if corretores_processed:
+        save_to_supabase(corretores_processed, "corretores", unique_key="Codigo")
         update_last_run_in_supabase("corretores")
         
-    return corretores
+    return corretores_processed
 
 async def extract_pipes(session):
     print("\n--- Extraindo Pipes (Async) ---")

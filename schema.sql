@@ -35,7 +35,8 @@ CREATE TABLE IF NOT EXISTS agencias (
 -- Tabela: Corretores
 CREATE TABLE IF NOT EXISTS corretores (
     "Codigo" TEXT PRIMARY KEY,
-    "Nome" TEXT
+    "Nome" TEXT,
+    "Equipe" TEXT
 );
 
 -- Tabela: Usuarios
