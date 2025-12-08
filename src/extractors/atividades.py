@@ -56,6 +56,11 @@ async def fetch_deal_activities(session, deal, fields_atividades):
                         flat_activity[k] = v[0]
                     else:
                         flat_activity[k] = v
+                
+                # Mapear AtividadeCreatedAt para Data (para ter horário)
+                if "AtividadeCreatedAt" in flat_activity:
+                    flat_activity["Data"] = flat_activity.pop("AtividadeCreatedAt")
+                    
                 deal_activities.append(flat_activity)
                 
         return deal_activities
@@ -72,14 +77,9 @@ async def extract_activities(session, deals):
     all_activities = []
     
     fields_atividades = [
-        "CodigoImovel", "ValorProposta", "EstadoProposta", "TextoProposta", "Aceitacao", "Automatico", 
-        "Numero", "Texto", "Pendente", "Assunto", "EtapaAcaoId", "EtapaAcao", "TipoAtividade", 
-        "TipoAtividadeId", "MotivoLost", "CodigoEmImovel", "Hora", "AtividadeCreatedAt", 
-        "AtividadeUpdatedAt", "Data", "CodigoCliente", "CodigoAtividade", "CodigoCorretor", 
-        "NumeroAgenda", "DataHora", "DataAtualizacao", "Local", "Inicio", "Final", "Prioridade", 
-        "Privado", "AlertaMinutos", "Excluido", "Concluido", "Tarefa", "DataConclusao", "DiaInteiro", 
-        "TipoAgenda", "CodigoDev", "IdGoogleCalendar", "StatusVisita", "CodigoImobiliaria", 
-        "Icone", "Duracao", "FotoCorretor", "Status"
+        "CodigoAtividade", "Assunto", "Texto", "TipoAtividade", "Status", 
+        "AtividadeCreatedAt", "ValorProposta", "TextoProposta", 
+        "CodigoCliente", "CodigoImovel", "CodigoCorretor"
     ]
     
     # Processar em lotes para não criar milhares de tasks de uma vez
@@ -99,3 +99,21 @@ async def extract_activities(session, deals):
     print(f"Total de atividades extraídas: {len(all_activities)}")
     
     return all_activities
+
+async def enrich_atividades_with_names():
+    """
+    Executa a função RPC para preencher NomeCorretor e NomeCliente na tabela atividades.
+    """
+    print("\n--- Enriquecendo Atividades com Nomes (SQL) ---")
+    from src.utils.supabase_client import get_supabase_client
+    
+    supabase = get_supabase_client()
+    if not supabase:
+        print("Erro: Não foi possível conectar ao Supabase.")
+        return
+
+    try:
+        response = supabase.rpc('enrich_atividades_names', {}).execute()
+        print("Enriquecimento de atividades concluído com sucesso.")
+    except Exception as e:
+        print(f"Erro ao enriquecer atividades: {e}")

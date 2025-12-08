@@ -101,31 +101,29 @@ async def extract_negocios(session):
                     nome_corretor = first_broker.get("NomeCorretor")
 
                 # Mapeamento para o formato final (Schema SQL)
+                # Mapeamento para o formato final (Schema SQL)
                 processed_n = {
                     "Codigo": n.get("Codigo"),
                     "Titulo": n.get("NomeNegocio"),
                     "ValorVenda": n.get("ValorNegocio"),
                     "ValorLocacao": None,
-                    "Fase": n.get("NomeEtapa"),
+                    "NomeEtapa": n.get("NomeEtapa"), # Mapeado para NomeEtapa
                     "DataCadastro": n.get("DataInicial"),
                     "DataAtualizacao": n.get("UltimaAtualizacao"),
                     "DataFechamento": n.get("DataFinal"),
                     "Status": n.get("Status"),
                     "CodigoCliente": n.get("CodigoCliente"),
                     "CodigoCorretor": codigo_corretor,
-                    "CodigoAgencia": None,
                     "Origem": n.get("VeiculoCaptacao"),
-                    "Midia": None,
-                    "Observacao": None,
                     "ObservacaoPerda": n.get("ObservacaoPerda"),
                     "NomeCliente": n.get("NomeCliente"),
-                    "NomeCorretor": nome_corretor,
-                    "NomeAgencia": "",
+                    "NomeCorretor": nome_corretor.split(":")[1].strip() if nome_corretor and ":" in nome_corretor else nome_corretor,
                     "MotivoPerda": n.get("MotivoPerda"),
                     "DataPerda": n.get("DataFinal") if n.get("Status") == "Perdido" else None,
                     "DataGanho": n.get("DataFinal") if n.get("Status") == "Ganho" else None,
-                    "PipeID": n.get("CodigoPipe"),
-                    "PipeNome": n.get("NomePipe")
+                    "CodigoPipe": n.get("CodigoPipe"), # Mapeado para CodigoPipe
+                    "NomePipe": n.get("NomePipe"),
+                    "EquipeCorretor": None # Será preenchido via SQL enrichment
                 }
                 processed_negocios.append(processed_n)
             
@@ -142,3 +140,24 @@ async def extract_negocios(session):
     print(f"\nTotal de negócios extraídos: {len(all_negocios)}")
     
     return all_negocios
+
+async def enrich_negocios_with_team():
+    """
+    Executa um comando SQL no Supabase para preencher a equipe do corretor
+    cruzando com a tabela de corretores.
+    """
+    print("\n--- Enriquecendo Negócios com Equipe (SQL) ---")
+    from src.utils.supabase_client import get_supabase_client
+    
+    supabase = get_supabase_client()
+    if not supabase:
+        print("Erro: Não foi possível conectar ao Supabase.")
+        return
+
+    try:
+        # Chamar a função RPC criada no banco
+        response = supabase.rpc('enrich_negocios_team', {}).execute()
+        print("Enriquecimento de equipe de negócios concluído com sucesso.")
+        
+    except Exception as e:
+        print(f"Erro ao enriquecer negócios: {e}")
