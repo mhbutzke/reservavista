@@ -26,7 +26,7 @@ async def run_activities_sync():
     offset = 0
     chunk_size = 1000
     while True:
-        res = supabase.table("negocios").select("Codigo").range(offset, offset + chunk_size - 1).execute()
+        res = supabase.table("negocios").select("Codigo,CodigoCliente,NomeCliente,CodigoCorretor,NomeCorretor").range(offset, offset + chunk_size - 1).execute()
         if not res.data:
             break
         all_deals.extend(res.data)
