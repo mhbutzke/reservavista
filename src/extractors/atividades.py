@@ -52,6 +52,21 @@ async def fetch_deal_activities(session, deal, fields_atividades):
             # Mapear AtividadeCreatedAt para Data
             if "AtividadeCreatedAt" in flat_activity:
                 flat_activity["Data"] = flat_activity.pop("AtividadeCreatedAt")
+
+            # --- ENRIQUECIMENTO COM DADOS DO NEGÓCIO ---
+            # Se faltar dados na atividade, pegamos do negócio pai
+            if not flat_activity.get("CodigoCliente") and deal.get("CodigoCliente"):
+                flat_activity["CodigoCliente"] = deal.get("CodigoCliente")
+            
+            if not flat_activity.get("CodigoCorretor") and deal.get("CodigoCorretor"):
+                flat_activity["CodigoCorretor"] = deal.get("CodigoCorretor")
+
+            # NomeCliente e NomeCorretor muitas vezes não vêm na atividade, mas temos no negócio
+            if not flat_activity.get("NomeCliente") and deal.get("NomeCliente"):
+                flat_activity["NomeCliente"] = deal.get("NomeCliente")
+                
+            if not flat_activity.get("NomeCorretor") and deal.get("NomeCorretor"):
+                flat_activity["NomeCorretor"] = deal.get("NomeCorretor")
                 
             deal_activities.append(flat_activity)
             

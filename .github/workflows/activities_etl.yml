@@ -2,10 +2,10 @@ name: Activities Sync (Partial)
 
 on:
   schedule:
-    # Run at 10:00 AM and 4:00 PM Brazil Time (UTC-3)
-    # 10:00 BRT = 13:00 UTC
-    # 16:00 BRT = 19:00 UTC
-    - cron: '0 13,19 * * *'
+    # Run hourly from 06:00 to 20:00 Brazil Time (UTC-3)
+    # 06:00 BRT = 09:00 UTC
+    # 20:00 BRT = 23:00 UTC
+    - cron: '0 9-23 * * *'
   workflow_dispatch: # Allow manual trigger
 
 jobs:
