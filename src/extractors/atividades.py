@@ -79,7 +79,7 @@ async def extract_activities(session, deals):
     fields_atividades = [
         "CodigoAtividade", "Assunto", "Texto", "TipoAtividade", "Status", 
         "AtividadeCreatedAt", "ValorProposta", "TextoProposta", 
-        "CodigoCliente", "CodigoImovel", "CodigoCorretor"
+        "CodigoCliente", "CodigoImovel", "CodigoCorretor", "Automatico"
     ]
     
     # Processar em lotes para não criar milhares de tasks de uma vez
