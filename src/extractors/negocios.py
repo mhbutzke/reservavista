@@ -104,25 +104,31 @@ async def extract_negocios(session):
                 # Mapeamento para o formato final (Schema SQL)
                 processed_n = {
                     "Codigo": n.get("Codigo"),
-                    "Titulo": n.get("NomeNegocio"),
-                    "ValorVenda": n.get("ValorNegocio"),
+                    "NomeNegocio": n.get("NomeNegocio"),
+                    "ValorNegocio": n.get("ValorNegocio"),
                     "ValorLocacao": None,
-                    "NomeEtapa": n.get("NomeEtapa"), # Mapeado para NomeEtapa
-                    "DataCadastro": n.get("DataInicial"),
-                    "DataAtualizacao": n.get("UltimaAtualizacao"),
-                    "DataFechamento": n.get("DataFinal"),
+                    "NomeEtapa": n.get("NomeEtapa"),
+                    "EtapaAtual": n.get("EtapaAtual"),
+                    "DataInicial": n.get("DataInicial"),
+                    "UltimaAtualizacao": n.get("UltimaAtualizacao"),
+                    "DataFinal": n.get("DataFinal"),
+                    "PrevisaoFechamento": n.get("PrevisaoFechamento"),
                     "Status": n.get("Status"),
                     "CodigoCliente": n.get("CodigoCliente"),
+                    "FotoCliente": n.get("FotoCliente"),
                     "CodigoCorretor": codigo_corretor,
-                    "Origem": n.get("VeiculoCaptacao"),
+                    "VeiculoCaptacao": n.get("VeiculoCaptacao"),
+                    "CodigoImovel": n.get("CodigoImovel"),
                     "ObservacaoPerda": n.get("ObservacaoPerda"),
                     "NomeCliente": n.get("NomeCliente"),
                     "NomeCorretor": nome_corretor.split(":")[1].strip() if nome_corretor and ":" in nome_corretor else nome_corretor,
                     "MotivoPerda": n.get("MotivoPerda"),
+                    "CodigoMotivoPerda": n.get("CodigoMotivoPerda"),
                     "DataPerda": n.get("DataFinal") if n.get("Status") == "Perdido" else None,
                     "DataGanho": n.get("DataFinal") if n.get("Status") == "Ganho" else None,
-                    "CodigoPipe": n.get("CodigoPipe"), # Mapeado para CodigoPipe
+                    "CodigoPipe": n.get("CodigoPipe"),
                     "NomePipe": n.get("NomePipe"),
+                    "StatusAtividades": n.get("StatusAtividades"),
                     "EquipeCorretor": None # Será preenchido via SQL enrichment
                 }
                 processed_negocios.append(processed_n)
