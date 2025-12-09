@@ -4,7 +4,7 @@ from src.extractors.imoveis import extract_imoveis, enrich_imoveis_with_team
 from src.extractors.clientes import extract_clientes
 from src.extractors.negocios import extract_negocios, enrich_negocios_with_team
 from src.extractors.atividades import extract_activities, enrich_atividades_with_names
-from src.extractors.outros import extract_usuarios, extract_agencias, extract_proprietarios, extract_pipes, extract_corretores
+from src.extractors.outros import extract_usuarios, extract_agencias, extract_proprietarios, extract_pipes
 from src.extractors.agenda import extract_agenda
 from src.utils.supabase_client import save_to_supabase, update_last_run_in_supabase
 from src.config import SAVE_TO_CSV
@@ -26,12 +26,11 @@ async def main():
                 extract_usuarios(session),
                 extract_agencias(session),
                 extract_proprietarios(session),
-                extract_corretores(session),
                 extract_pipes(session),
                 extract_agenda(session)
             )
             
-            imoveis, clientes, usuarios, agencias, proprietarios, corretores, pipes, agenda = results
+            imoveis, clientes, usuarios, agencias, proprietarios, pipes, agenda = results
 
             # Salvar resultados independentes (Isso pode ser feito enquanto extraímos negócios, mas por simplicidade faremos aqui)
             if imoveis: save_to_supabase(imoveis, "imoveis", unique_key="Codigo")
@@ -42,7 +41,7 @@ async def main():
             
             # Executar enriquecimento de dados (SQL Updates)
             # Importante: Deve ser feito APÓS salvar imoveis e corretores
-            if imoveis or corretores:
+            if imoveis:
                 await enrich_imoveis_with_team()
 
             # 2. Negócios (Deals)
