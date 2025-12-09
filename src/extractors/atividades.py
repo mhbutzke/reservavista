@@ -72,7 +72,7 @@ async def extract_activities(session, deals):
         "CodigoAtividade", "Assunto", "Texto", "TipoAtividade", "Status", 
         "AtividadeCreatedAt", "ValorProposta", "TextoProposta", 
         "CodigoCliente", "CodigoImovel", "CodigoCorretor", "Automatico",
-        "EstadoProposta", "Aceitacao", "Numero", "Pendente", "EtapaAcaoId", 
+        "EstadoProposta", "Numero", "Pendente", "EtapaAcaoId", 
         "EtapaAcao", "TipoAtividadeId", "MotivoLost", "CodigoEmImovel", "Hora", 
         "AtividadeUpdatedAt", "NumeroAgenda", "DataHora", "DataAtualizacao", 
         "Local", "Inicio", "Final", "Prioridade", "Privado", "AlertaMinutos", 
