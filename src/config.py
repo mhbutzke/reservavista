@@ -16,7 +16,7 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 # CONFIGURAÇÕES GERAIS
-SAVE_TO_CSV = os.getenv("SAVE_TO_CSV", "True").lower() == "true"
+SAVE_TO_CSV = os.getenv("SAVE_TO_CSV", "False").lower() == "true"
 CSV_OUTPUT_DIR = os.getenv("CSV_OUTPUT_DIR", "./data")
 
 # CONSTANTES
