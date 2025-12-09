@@ -13,7 +13,13 @@ async def extract_imoveis(session):
         "DataCadastro", "DataAtualizacao", "Status", "Situacao",
         "DescricaoWeb", "TituloSite",
         "CodigoProprietario", "Proprietario", "CodigoCorretor", "CorretorNome", 
-        "CodigoAgencia"
+        "CodigoAgencia",
+        # Novos campos adicionados
+        "ValorCondominio", "ValorIptu", "AceitaPermuta", "AceitaFinanciamento",
+        "AnoConstrucao", "Mobiliado",
+        "Latitude", "Longitude",
+        "Piscina", "Churrasqueira", "ArCondicionado", "Lareira", "Sacada", "SuiteMaster",
+        "Elevador", "SalaoFestas", "Portaria24Hrs", "SalaFitness"
     ]
     
     imoveis = await get_vista_data_async(session, "imoveis/listar", fields_imoveis)
