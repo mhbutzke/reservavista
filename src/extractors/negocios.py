@@ -11,9 +11,17 @@ async def fetch_deal_details(session, deal_id):
     Busca detalhes de um negócio específico para obter dados do corretor.
     """
     try:
+        # Campos específicos que queremos do endpoint de detalhes
+        # CorretoresNegocio vem automaticamente, não precisa pedir (e se pedir dá erro 400)
+        fields_detalhes = [
+            "Codigo", "EmailCliente", "CelularCliente", "TelefoneCliente", 
+            "TempoDasEtapasDoNegocio"
+        ]
+        
         params = {
             "key": VISTA_API_KEY,
-            "codigo_negocio": deal_id
+            "codigo_negocio": deal_id,
+            "pesquisa": json.dumps({"fields": fields_detalhes})
         }
         data = await make_async_api_request(session, "negocios/detalhes", params=params)
         return data
@@ -129,6 +137,10 @@ async def extract_negocios(session):
                     "CodigoPipe": n.get("CodigoPipe"),
                     "NomePipe": n.get("NomePipe"),
                     "StatusAtividades": n.get("StatusAtividades"),
+                    "EmailCliente": n.get("EmailCliente"),
+                    "CelularCliente": n.get("CelularCliente"),
+                    "TelefoneCliente": n.get("TelefoneCliente"),
+                    "TempoDasEtapasDoNegocio": n.get("TempoDasEtapasDoNegocio"),
                     "EquipeCorretor": None # Será preenchido via SQL enrichment
                 }
                 processed_negocios.append(processed_n)
