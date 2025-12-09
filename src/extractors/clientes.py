@@ -7,7 +7,12 @@ async def extract_clientes(session):
         "Codigo", "Nome", "CPFCNPJ", "RG", "DataNascimento", "Sexo", "EstadoCivil", "Profissao", "Nacionalidade",
         "EmailResidencial", "FonePrincipal", "Celular", "FoneComercial", "EmailComercial",
         "EnderecoResidencial", "EnderecoNumero", "EnderecoComplemento", "BairroResidencial", "CidadeResidencial", "UFResidencial", "CEPResidencial",
-        "Status", "DataCadastro", "Observacoes"
+        "Status", "DataCadastro", "Observacoes",
+        # Novos campos adicionados
+        "NomeConjuge", "CPFConjuge", "EmailConjuge", "CelularConjuge", "DataNascimentoConjuge",
+        "EnderecoComercial", "BairroComercial", "CidadeComercial", "CEPComercial",
+        "Foto", "VeiculoCaptacao", "Naturalidade", "Investidor", "Interesse",
+        "Banco", "Agencia", "Conta"
     ]
     
     clientes = await get_vista_data_async(session, "clientes/listar", fields_clientes)
