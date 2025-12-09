@@ -11,58 +11,50 @@ async def fetch_deal_activities(session, deal, fields_atividades):
     deal_activities = []
     
     try:
-        # Passo 1: Buscar lista de IDs de atividades (Facets)
+        # Passo 1: Buscar todas as atividades com todos os campos (paginado)
+        # A maioria dos negócios tem poucas atividades, então 50 deve cobrir quase tudo.
+        # Se precisar de mais, podemos aumentar ou implementar paginação completa aqui.
         params = {
             "key": VISTA_API_KEY,
-            "pesquisa": json.dumps({"fields": ["CodigoAtividade"], "paginacao": {"pagina": 1, "quantidade": 50}}),
+            "pesquisa": json.dumps({
+                "fields": fields_atividades, 
+                "paginacao": {"pagina": 1, "quantidade": 50}
+            }),
             "codigo_negocio": deal_id
         }
         
-        # Usar make_async_api_request para buscar IDs
         data = await make_async_api_request(session, "negocios/atividades", params=params)
         
-        if not data:
+        if not data or not isinstance(data, dict):
             return []
             
-        activity_ids = data.get("CodigoAtividade", [])
-        
-        if not activity_ids:
+        # Verificar se temos dados (CodigoAtividade deve estar presente e ser uma lista)
+        if "CodigoAtividade" not in data or not isinstance(data["CodigoAtividade"], list):
             return []
             
-        # Passo 2: Buscar detalhes de cada atividade individualmente (em paralelo)
-        tasks = []
-        for act_id in activity_ids:
-            # Filtrar por ID específico para obter o registro completo
-            params_detail = {
-                "key": VISTA_API_KEY,
-                "pesquisa": json.dumps({
-                    "fields": fields_atividades, 
-                    "paginacao": {"pagina": 1, "quantidade": 1},
-                    "filter": {"CodigoAtividade": act_id}
-                }),
-                "codigo_negocio": deal_id
-            }
-            tasks.append(make_async_api_request(session, "negocios/atividades", params=params_detail))
+        num_activities = len(data["CodigoAtividade"])
+        if num_activities == 0:
+            return []
             
-        details_results = await asyncio.gather(*tasks)
-        
-        for detail_data in details_results:
-            if detail_data:
-                # O retorno é {"Campo": ["Valor"], ...}
-                # Precisamos "flatten" isso para um objeto simples
-                flat_activity = {"CodigoNegocio": deal_id}
-                for k, v in detail_data.items():
-                    if isinstance(v, list) and len(v) > 0:
-                        flat_activity[k] = v[0]
-                    else:
-                        flat_activity[k] = v
+        # Transformar formato colunar em lista de objetos
+        # Ex: {"CampoA": [V1, V2], "CampoB": [V1, V2]} -> [{CampoA: V1, CampoB: V1}, {CampoA: V2, CampoB: V2}]
+        for i in range(num_activities):
+            flat_activity = {"CodigoNegocio": deal_id}
+            
+            for field in fields_atividades:
+                # O campo pode não vir no retorno se estiver vazio para todos, ou pode vir com menos itens (embora raro no Vista)
+                # Vamos assumir que as listas estão alinhadas.
+                if field in data and isinstance(data[field], list) and len(data[field]) > i:
+                    flat_activity[field] = data[field][i]
+                else:
+                    flat_activity[field] = ""
+            
+            # Mapear AtividadeCreatedAt para Data
+            if "AtividadeCreatedAt" in flat_activity:
+                flat_activity["Data"] = flat_activity.pop("AtividadeCreatedAt")
                 
-                # Mapear AtividadeCreatedAt para Data (para ter horário)
-                if "AtividadeCreatedAt" in flat_activity:
-                    flat_activity["Data"] = flat_activity.pop("AtividadeCreatedAt")
-                    
-                deal_activities.append(flat_activity)
-                
+            deal_activities.append(flat_activity)
+            
         return deal_activities
 
     except Exception as e:
