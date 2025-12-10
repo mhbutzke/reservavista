@@ -100,7 +100,7 @@ ORDER BY date DESC, entity;
 CREATE OR REPLACE FUNCTION get_recent_etl_runs(limit_count INTEGER DEFAULT 10)
 RETURNS TABLE (
   entity TEXT,
-  timestamp TIMESTAMPTZ,
+  run_timestamp TIMESTAMPTZ,
   status TEXT,
   records_processed INTEGER,
   execution_time_ms INTEGER
@@ -109,7 +109,7 @@ BEGIN
   RETURN QUERY
   SELECT 
     a.entity,
-    a.timestamp,
+    a.timestamp as run_timestamp,
     a.status,
     a.records_processed,
     a.execution_time_ms
