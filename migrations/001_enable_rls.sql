@@ -20,108 +20,101 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- ============================================
 
 -- Pipes
-ALTER TABLE pipes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS pipes ENABLE ROW LEVEL SECURITY;
 
 -- Agencias
-ALTER TABLE agencias ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS agencias ENABLE ROW LEVEL SECURITY;
 
 -- Corretores
-ALTER TABLE corretores ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS corretores ENABLE ROW LEVEL SECURITY;
 
 -- Usuarios
-ALTER TABLE usuarios ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS usuarios ENABLE ROW LEVEL SECURITY;
 
 -- Proprietarios
-ALTER TABLE proprietarios ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS proprietarios ENABLE ROW LEVEL SECURITY;
 
 -- Clientes
-ALTER TABLE clientes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS clientes ENABLE ROW LEVEL SECURITY;
 
 -- Imoveis
-ALTER TABLE imoveis ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS imoveis ENABLE ROW LEVEL SECURITY;
 
 -- Negocios
-ALTER TABLE negocios ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS negocios ENABLE ROW LEVEL SECURITY;
 
 -- Atividades
-ALTER TABLE atividades ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS atividades ENABLE ROW LEVEL SECURITY;
 
 -- Sync State
-ALTER TABLE sync_state ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS sync_state ENABLE ROW LEVEL SECURITY;
 
 -- ============================================
 -- POLÍTICAS DE ACESSO - SERVICE ROLE
 -- ============================================
 
--- Pipes: Service Role - Full Access
-CREATE POLICY "Service role full access to pipes"
-  ON pipes
-  FOR ALL
-  USING (is_service_role())
-  WITH CHECK (is_service_role());
+DO $$
+BEGIN
+    -- Pipes
+    IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'pipes') THEN
+        DROP POLICY IF EXISTS "Service role full access to pipes" ON pipes;
+        CREATE POLICY "Service role full access to pipes" ON pipes FOR ALL USING (is_service_role()) WITH CHECK (is_service_role());
+    END IF;
 
--- Agencias: Service Role - Full Access
-CREATE POLICY "Service role full access to agencias"
-  ON agencias
-  FOR ALL
-  USING (is_service_role())
-  WITH CHECK (is_service_role());
+    -- Agencias
+    IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'agencias') THEN
+        DROP POLICY IF EXISTS "Service role full access to agencias" ON agencias;
+        CREATE POLICY "Service role full access to agencias" ON agencias FOR ALL USING (is_service_role()) WITH CHECK (is_service_role());
+    END IF;
 
--- Corretores: Service Role - Full Access
-CREATE POLICY "Service role full access to corretores"
-  ON corretores
-  FOR ALL
-  USING (is_service_role())
-  WITH CHECK (is_service_role());
+    -- Corretores
+    IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'corretores') THEN
+        DROP POLICY IF EXISTS "Service role full access to corretores" ON corretores;
+        CREATE POLICY "Service role full access to corretores" ON corretores FOR ALL USING (is_service_role()) WITH CHECK (is_service_role());
+    END IF;
 
--- Usuarios: Service Role - Full Access
-CREATE POLICY "Service role full access to usuarios"
-  ON usuarios
-  FOR ALL
-  USING (is_service_role())
-  WITH CHECK (is_service_role());
+    -- Usuarios
+    IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'usuarios') THEN
+        DROP POLICY IF EXISTS "Service role full access to usuarios" ON usuarios;
+        CREATE POLICY "Service role full access to usuarios" ON usuarios FOR ALL USING (is_service_role()) WITH CHECK (is_service_role());
+    END IF;
 
--- Proprietarios: Service Role - Full Access
-CREATE POLICY "Service role full access to proprietarios"
-  ON proprietarios
-  FOR ALL
-  USING (is_service_role())
-  WITH CHECK (is_service_role());
+    -- Proprietarios
+    IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'proprietarios') THEN
+        DROP POLICY IF EXISTS "Service role full access to proprietarios" ON proprietarios;
+        CREATE POLICY "Service role full access to proprietarios" ON proprietarios FOR ALL USING (is_service_role()) WITH CHECK (is_service_role());
+    END IF;
 
--- Clientes: Service Role - Full Access
-CREATE POLICY "Service role full access to clientes"
-  ON clientes
-  FOR ALL
-  USING (is_service_role())
-  WITH CHECK (is_service_role());
+    -- Clientes
+    IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'clientes') THEN
+        DROP POLICY IF EXISTS "Service role full access to clientes" ON clientes;
+        CREATE POLICY "Service role full access to clientes" ON clientes FOR ALL USING (is_service_role()) WITH CHECK (is_service_role());
+    END IF;
 
--- Imoveis: Service Role - Full Access
-CREATE POLICY "Service role full access to imoveis"
-  ON imoveis
-  FOR ALL
-  USING (is_service_role())
-  WITH CHECK (is_service_role());
+    -- Imoveis
+    IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'imoveis') THEN
+        DROP POLICY IF EXISTS "Service role full access to imoveis" ON imoveis;
+        CREATE POLICY "Service role full access to imoveis" ON imoveis FOR ALL USING (is_service_role()) WITH CHECK (is_service_role());
+    END IF;
 
--- Negocios: Service Role - Full Access
-CREATE POLICY "Service role full access to negocios"
-  ON negocios
-  FOR ALL
-  USING (is_service_role())
-  WITH CHECK (is_service_role());
+    -- Negocios
+    IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'negocios') THEN
+        DROP POLICY IF EXISTS "Service role full access to negocios" ON negocios;
+        CREATE POLICY "Service role full access to negocios" ON negocios FOR ALL USING (is_service_role()) WITH CHECK (is_service_role());
+    END IF;
 
--- Atividades: Service Role - Full Access
-CREATE POLICY "Service role full access to atividades"
-  ON atividades
-  FOR ALL
-  USING (is_service_role())
-  WITH CHECK (is_service_role());
+    -- Atividades
+    IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'atividades') THEN
+        DROP POLICY IF EXISTS "Service role full access to atividades" ON atividades;
+        CREATE POLICY "Service role full access to atividades" ON atividades FOR ALL USING (is_service_role()) WITH CHECK (is_service_role());
+    END IF;
 
--- Sync State: Service Role - Full Access
-CREATE POLICY "Service role full access to sync_state"
-  ON sync_state
-  FOR ALL
-  USING (is_service_role())
-  WITH CHECK (is_service_role());
+    -- Sync State
+    IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'sync_state') THEN
+        DROP POLICY IF EXISTS "Service role full access to sync_state" ON sync_state;
+        CREATE POLICY "Service role full access to sync_state" ON sync_state FOR ALL USING (is_service_role()) WITH CHECK (is_service_role());
+    END IF;
+END $$;
 
 -- ============================================
 -- POLÍTICAS DE ACESSO - PÚBLICO (READ-ONLY)
