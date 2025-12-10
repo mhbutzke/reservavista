@@ -1,12 +1,11 @@
 import aiohttp
 import asyncio
 import json
-import logging
-from src.config import VISTA_API_URL, VISTA_API_KEY, MAX_RETRIES, BACKOFF_FACTOR
+from src.config import VISTA_API_URL, VISTA_API_KEY, MAX_RETRIES, BACKOFF_FACTOR, REQUEST_TIMEOUT
+from src.utils.secure_logger import SecureLogger
 
-# Configurar logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+# Logger seguro
+logger = SecureLogger('async_api_client')
 
 # Semáforo para limitar concorrência (evitar 429 Rate Limit)
 # O Vista CRM pode ser sensível, então começamos conservadores (10)
@@ -21,28 +20,36 @@ def get_semaphore():
 
 async def make_async_api_request(session, endpoint, params=None, method="GET"):
     """
-    Faz uma requisição assíncrona à API com retries e backoff.
+    Faz uma requisição assíncrona à API com retries, timeouts e backoff.
     """
     url = f"{VISTA_API_URL}/{endpoint}"
     headers = {
         "Accept": "application/json",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
     }
+    
+    # Configurar timeout
+    timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT, connect=10)
     
     for attempt in range(MAX_RETRIES):
         try:
-            async with get_semaphore(): # Respeitar o limite de concorrência
-                async with session.request(method, url, params=params, headers=headers) as response:
-                    
+            async with get_semaphore():  # Respeitar limite de concorrência
+                async with session.request(
+                    method, url, 
+                    params=params, 
+                    headers=headers,
+                    timeout=timeout
+                ) as response:
+                        
                     if response.status == 429:
                         wait_time = (BACKOFF_FACTOR ** attempt) * 2
-                        logger.warning(f"Rate limit (429) em {endpoint}. Esperando {wait_time:.2f}s...")
+                        logger.warning(f"Rate limit (429) em {endpoint}. Esperando {wait_time:.2f}s")
                         await asyncio.sleep(wait_time)
                         continue
                         
                     if 500 <= response.status < 600:
                         wait_time = (BACKOFF_FACTOR ** attempt)
-                        logger.warning(f"Erro Servidor ({response.status}) em {endpoint}. Esperando {wait_time:.2f}s...")
+                        logger.warning(f"Erro Servidor ({response.status}) em {endpoint}. Esperando {wait_time:.2f}s")
                         await asyncio.sleep(wait_time)
                         continue
                         
@@ -52,16 +59,17 @@ async def make_async_api_request(session, endpoint, params=None, method="GET"):
                         data = await response.json()
                         # Verificar erro lógico na resposta
                         if isinstance(data, dict) and "status" in data and str(data["status"]) != "200":
-                            logger.warning(f"Aviso API (Tentativa {attempt+1}): {data.get('message')}")
-                            # Alguns erros lógicos podem ser temporários, outros não.
-                            # Por segurança, retornamos o erro para ser tratado.
+                            logger.warning(f"Erro API (Tentativa {attempt+1}): {data.get('message')}")
                             return data 
                         return data
                     except json.JSONDecodeError:
                         text = await response.text()
                         logger.error(f"Erro JSON em {endpoint}: {text[:100]}")
                         return None
-                        
+        
+        except asyncio.TimeoutError:
+            logger.error(f"Timeout ({REQUEST_TIMEOUT}s) em {endpoint} (Tentativa {attempt+1}/{MAX_RETRIES})")
+            await asyncio.sleep(BACKOFF_FACTOR ** attempt)            
         except aiohttp.ClientError as e:
             logger.error(f"Erro Conexão ({attempt+1}/{MAX_RETRIES}) em {endpoint}: {e}")
             await asyncio.sleep(BACKOFF_FACTOR ** attempt)

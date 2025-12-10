@@ -29,7 +29,9 @@ jobs:
         VISTA_API_URL: ${{ secrets.VISTA_API_URL }}
         VISTA_API_KEY: ${{ secrets.VISTA_API_KEY }}
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-        SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         SAVE_TO_CSV: "False"
+        ENABLE_DATA_VALIDATION: "True"
+        ENABLE_AUDIT_LOGGING: "True"
       run: |
         python -m src.main
