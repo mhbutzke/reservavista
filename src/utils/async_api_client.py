@@ -70,6 +70,12 @@ async def make_async_api_request(session, endpoint, params=None, method="GET"):
         except asyncio.TimeoutError:
             logger.error(f"Timeout ({REQUEST_TIMEOUT}s) em {endpoint} (Tentativa {attempt+1}/{MAX_RETRIES})")
             await asyncio.sleep(BACKOFF_FACTOR ** attempt)            
+        except aiohttp.ClientResponseError as e:
+            if e.status == 404:
+                logger.warning(f"Recurso não encontrado (404) em {endpoint}. Não será feita nova tentativa.")
+                return None
+            logger.error(f"Erro HTTP {e.status} ({attempt+1}/{MAX_RETRIES}) em {endpoint}: {e}")
+            await asyncio.sleep(BACKOFF_FACTOR ** attempt)
         except aiohttp.ClientError as e:
             logger.error(f"Erro Conexão ({attempt+1}/{MAX_RETRIES}) em {endpoint}: {e}")
             await asyncio.sleep(BACKOFF_FACTOR ** attempt)
