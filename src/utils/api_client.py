@@ -18,8 +18,8 @@ def make_api_request(endpoint, params=None, method="GET"):
             if method == "GET":
                 response = requests.get(url, params=params, headers=headers)
             else:
-                # Implementar outros métodos se necessário
-                pass
+                # Passar outros métodos para requests.request
+                response = requests.request(method, url, params=params, headers=headers, json=params if method in ['POST', 'PUT', 'PATCH'] else None)
                 
             # Verificar status code
             response.raise_for_status()
@@ -48,7 +48,7 @@ def make_api_request(endpoint, params=None, method="GET"):
                     time.sleep(wait_time)
                     continue
                 elif 400 <= response.status_code < 500:
-                    print("Erro do cliente (4xx). Não haverá retentativa.")
+                    print("Erro do cliente (4xx). Não haverá nova tentativa.")
                     return None
         
         # Backoff padrão para outros erros de conexão

@@ -18,7 +18,7 @@ async def main():
         async with aiohttp.ClientSession() as session:
             # 1. Extrações Independentes (Podem rodar em paralelo)
             # Agrupamos tarefas que não dependem umas das outras
-            print(">> Iniciando extrações paralelas (Imóveis, Clientes, Usuários, Agências, Proprietários, Corretores, Pipes)...")
+            print(">> Iniciando extrações paralelas (Imóveis, Clientes, Usuários, Agências, Proprietários, Pipes, Agenda)...")
             
             results = await asyncio.gather(
                 extract_imoveis(session),

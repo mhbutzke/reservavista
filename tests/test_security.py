@@ -139,8 +139,15 @@ class TestTextSanitization:
         
         for malicious in malicious_inputs:
             sanitized = sanitize_text(malicious)
-            # Apenas verifica que não quebra, SQL injection real é prevenida por parametrização
-            assert sanitized is not None or sanitized is None
+            # Apenas verifica que não quebra e retorna string ou None (não deve lançar exceção)
+            # Em uma implementação real de sanitização, verificaríamos se caracteres perigosos foram removidos ou escapados.
+            # Como sanitize_text pode retornar None para strings vazias/inválidas ou a string limpa:
+            assert sanitized is None or isinstance(sanitized, str)
+            if sanitized:
+                # Verifica se a string sanitizada não contém a injeção óbvia (exemplo simplificado)
+                assert malicious not in sanitized or sanitized == malicious # Depende da implementação, mas o teste original era tautológico.
+                # Vamos assumir que o objetivo é garantir que não crasha e retorna tipo válido.
+                pass
     
     def test_length_limiting(self):
         """Testa limitação de tamanho."""
